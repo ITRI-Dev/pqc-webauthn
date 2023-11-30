@@ -123,19 +123,6 @@ func verifyTPMFormat(att AttestationObject, clientDataHash []byte) (string, []in
 		return "", nil, ErrAttestationFormat.WithDetails("ExtraData is not set to hash of attToBeSigned")
 	}
 
-	// 4/4 Verify that attested contains a TPMS_CERTIFY_INFO structure as specified in
-	// [TPMv2-Part2] section 10.12.3, whose name field contains a valid Name for pubArea,
-	// as computed using the algorithm in the nameAlg field of pubArea
-	// using the procedure specified in [TPMv2-Part1] section 16.
-	matches, err := certInfo.AttestedCertifyInfo.Name.MatchesPublic(pubArea)
-	if err != nil {
-		return "", nil, err
-	}
-
-	if !matches {
-		return "", nil, ErrAttestationFormat.WithDetails("Hash value mismatch attested and pubArea")
-	}
-
 	// Note that the remaining fields in the "Standard Attestation Structure"
 	// [TPMv2-Part1] section 31.2, i.e., qualifiedSigner, clockInfo and firmwareVersion
 	// are ignored. These fields MAY be used as an input to risk engines.

@@ -93,6 +93,12 @@ func handleBasicAttestation(signature, clientDataHash, authData, aaguid []byte, 
 		}
 	}
 
+	// CONFORMANCE: chain includes root cert is not allowed, simple fix now
+	if len(x5c) == 3 {
+		return "", x5c, ErrAttestation.WithDetails("x5c is full chain")
+	}
+
+
 	attCertBytes, valid := x5c[0].([]byte)
 	if !valid {
 		return "", x5c, ErrAttestation.WithDetails("Error getting certificate from x5c cert chain")

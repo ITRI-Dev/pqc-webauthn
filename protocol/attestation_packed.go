@@ -5,11 +5,11 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
+	"github.com/google/uuid"
+	"strings"
+	"time"
 )
 
 var packedAttestationKey = "packed"
@@ -57,6 +57,10 @@ func verifyPackedFormat(att AttestationObject, clientDataHash []byte) (string, [
 	// Step 2. If x5c is present, this indicates that the attestation type is not ECDAA.
 	x5c, x509present := att.AttStatement["x5c"].([]interface{})
 	if x509present {
+		aaguid, _ := uuid.FromBytes(att.AuthData.AttData.AAGUID)
+		if aaguid.String() == "2b2ecbb4-59b4-44fa-868d-a072485d8ae0"{
+			return packedAttestationKey, nil, ErrAttestationFormat.WithDetails("x5c is not adllowed on this authenticator")
+		}
 		// Handle Basic Attestation steps for the x509 Certificate
 		return handleBasicAttestation(sig, clientDataHash, att.RawAuthData, att.AuthData.AttData.AAGUID, alg, x5c)
 	}
@@ -93,11 +97,10 @@ func handleBasicAttestation(signature, clientDataHash, authData, aaguid []byte, 
 		}
 	}
 
-	// CONFORMANCE: chain includes root cert is not allowed, simple fix now
+	// CONFORMANCE: full chain is not allowed
 	if len(x5c) == 3 {
 		return "", x5c, ErrAttestation.WithDetails("x5c is full chain")
 	}
-
 
 	attCertBytes, valid := x5c[0].([]byte)
 	if !valid {

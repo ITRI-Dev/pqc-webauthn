@@ -26,7 +26,7 @@ type PublicKeyCredentialCreationOptions struct {
 	Challenge              URLEncodedBase64         `json:"challenge"`
 	Parameters             []CredentialParameter    `json:"pubKeyCredParams,omitempty"`
 	Timeout                int                      `json:"timeout,omitempty"`
-	CredentialExcludeList  []CredentialDescriptor   `json:"excludeCredentials,omitempty"`
+	CredentialExcludeList  []CredentialDescriptor   `json:"excludeCredentials"`
 	AuthenticatorSelection AuthenticatorSelection   `json:"authenticatorSelection,omitempty"`
 	Attestation            ConveyancePreference     `json:"attestation,omitempty"`
 	Extensions             AuthenticationExtensions `json:"extensions,omitempty"`

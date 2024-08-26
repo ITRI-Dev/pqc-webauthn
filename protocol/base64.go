@@ -27,7 +27,7 @@ func (e *URLEncodedBase64) UnmarshalJSON(data []byte) error {
 	data = bytes.Trim(data, "\"")
 
 	// Trim the trailing equal characters.
-	data = bytes.TrimRight(data, "=")
+	// data = bytes.TrimRight(data, "=") // For conformance test #F-14
 
 	out := make([]byte, base64.RawURLEncoding.DecodedLen(len(data)))
 

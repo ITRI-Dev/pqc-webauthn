@@ -1,6 +1,12 @@
 # Disclaimer 
 This WebAuthn library supports the PQC Dilithium algorithm at levels 2, 3, and 5. In order to use this functionality, authorization for the Go version of the Crystals-Dilithium encryption algorithm library must be obtained. Additionally, the library must be installed in the Go library path, typically located at /go/src/crystals-dilithium. The actual path may vary depending on the user's specific Go project configuration.
 
+Modified the following two files:
+- protocol/webauthncose/webauthncose.go
+- webauthn/registration.go
+
+Additionally, in `protocol/webauthncose/webauthncose.go`, imported `dilithium "crystals-dilithium"`.
+
 # WebAuthn Library
 
 [![GoDoc](https://godoc.org/github.com/go-webauthn/webauthn?status.svg)](https://godoc.org/github.com/go-webauthn/webauthn)

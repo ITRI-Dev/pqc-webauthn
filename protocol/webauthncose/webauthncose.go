@@ -6,6 +6,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509"
+	dilithium "crystals-dilithium"
 	"encoding/asn1"
 	"encoding/pem"
 	"fmt"
@@ -48,6 +49,16 @@ type EC2PublicKeyData struct {
 	YCoord []byte `cbor:"-3,keyasint,omitempty" json:"y"`
 }
 
+type PQCPublicKeyData struct {
+	PublicKeyData
+
+	// If the key type is EC2 or PQC dilitium, the curve on which we derive the signature from.
+	Curve int64 `cbor:"-1,keyasint,omitempty" json:"crv"`
+
+	// A byte string in length that holds the x coordinate of the dilitium public key.
+	XCoord []byte `cbor:"-2,keyasint,omitempty" json:"x"`
+}
+
 type RSAPublicKeyData struct {
 	PublicKeyData
 
@@ -65,6 +76,21 @@ type OKPPublicKeyData struct {
 
 	// A byte string that holds the x coordinate of the key.
 	XCoord []byte `cbor:"-2,keyasint,omitempty" json:"x"`
+}
+
+// Verify PQC Dilitium Public Key Signature.
+func (k *PQCPublicKeyData) Verify(data []byte, sig []byte) (bool, error) {
+	var d *dilithium.Dilithium
+	switch k.Algorithm {
+	case -48:
+		d = dilithium.NewDilithium2(false)
+	case -49:
+		d = dilithium.NewDilithium3(false)
+	case -50:
+		d = dilithium.NewDilithium5(false)
+	}
+
+	return d.Verify(k.XCoord, data, sig), nil
 }
 
 // Verify Octet Key Pair (OKP) Public Key Signature.
@@ -205,6 +231,13 @@ func ParsePublicKey(keyBytes []byte) (interface{}, error) {
 		r.PublicKeyData = pk
 
 		return r, nil
+	case PQC: //增加key type PQC=7
+		var e PQCPublicKeyData
+
+		webauthncbor.Unmarshal(keyBytes, &e)
+		e.PublicKeyData = pk
+
+		return e, nil
 	default:
 		return nil, ErrUnsupportedKey
 	}
@@ -235,6 +268,16 @@ func ParseFIDOPublicKey(keyBytes []byte) (data EC2PublicKeyData, err error) {
 type COSEAlgorithmIdentifier int
 
 const (
+
+	// PQC Dilitium level 2
+	AlgDilitium2 COSEAlgorithmIdentifier = -48
+
+	// PQC Dilitium level 3
+	AlgDilitium3 COSEAlgorithmIdentifier = -49
+
+	// PQC Dilitium level 5
+	AlgDilitium5 COSEAlgorithmIdentifier = -50
+
 	// AlgES256 ECDSA with SHA-256.
 	AlgES256 COSEAlgorithmIdentifier = -7
 
@@ -293,6 +336,9 @@ const (
 
 	// HSSLMS is the public key for HSS/LMS hash-based digital signature.
 	HSSLMS
+
+	//PQC自定義
+	PQC COSEKeyType = 7
 )
 
 // COSEEllipticCurve is an enumerator that represents the COSE Elliptic Curves.
@@ -344,6 +390,8 @@ func (k *EC2PublicKeyData) TPMCurveID() tpm2.EllipticCurve {
 
 func VerifySignature(key interface{}, data []byte, sig []byte) (bool, error) {
 	switch k := key.(type) {
+	case PQCPublicKeyData:
+		return k.Verify(data, sig)
 	case OKPPublicKeyData:
 		return k.Verify(data, sig)
 	case EC2PublicKeyData:

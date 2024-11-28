@@ -193,6 +193,21 @@ func (webauthn *WebAuthn) CreateCredential(user User, session SessionData, parse
 
 func defaultRegistrationCredentialParameters() []protocol.CredentialParameter {
 	return []protocol.CredentialParameter{
+		//增加PQC Dilitium level 3 演算法 提供驗證器匹配
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgDilitium3,
+		},
+		//增加PQC Dilitium level 2 演算法 提供驗證器匹配
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgDilitium2,
+		},
+		//增加PQC Dilitium level 5 演算法 提供驗證器匹配
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgDilitium5,
+		},
 		{
 			Type:      protocol.PublicKeyCredentialType,
 			Algorithm: webauthncose.AlgES256,

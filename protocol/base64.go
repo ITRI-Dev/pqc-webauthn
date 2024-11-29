@@ -28,7 +28,7 @@ func (e *URLEncodedBase64) UnmarshalJSON(data []byte) error {
 
 	// Trim the trailing equal characters.
 	// data = bytes.TrimRight(data, "=") // For conformance test #F-14
-
+	data = bytes.TrimRight(data, "=") // During the authenticator's enroll or login process, bytes.TrimRight(data, "=") processing is required.
 	out := make([]byte, base64.RawURLEncoding.DecodedLen(len(data)))
 
 	n, err := base64.RawURLEncoding.Decode(out, data)
